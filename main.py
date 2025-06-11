@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 
 from dotenv import load_dotenv
 
@@ -6,9 +7,6 @@ load_dotenv()
 
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-import fitz
-import io
-from datetime import datetime
 
 from handlers import RAGHandler, FileHandler, GPTHandler
 
