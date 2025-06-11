@@ -1,11 +1,16 @@
 import os
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 import fitz
 import io
+from datetime import datetime
 
-from handlers import RAGHandler, FileHandler
+from handlers import RAGHandler, FileHandler, GPTHandler
 
 app = FastAPI()
 
@@ -27,12 +32,12 @@ async def read_root():
     return {"message": "Hello World"}
 
 
+# need to add error handleing
 @app.post("/v1/rag/upload")
 async def upload_rag(file: UploadFile = File(...)):
     url = None
     title = file.filename
-    # TODO: generate therapeutic area, might call OpenAI with some part of the file
-    therapeutic_area = None
+    timestamp = datetime.now().strftime("%m-%Y")
 
     if file.content_type == "application/pdf":
         text = await FileHandler().process_pdf(file)
@@ -45,4 +50,21 @@ async def upload_rag(file: UploadFile = File(...)):
         text = await FileHandler().process_docx(file)
     else:
         raise HTTPException(status_code=400, detail="Unsupported file type")
-    return {"text": text}
+
+    openai_api_key = os.getenv("OPENAI_API_KEY")
+    THERAPEUTIC_PROMPT = os.getenv("THERAPEUTIC_PROMPT")
+    therapeutic_area = GPTHandler(openai_api_key).generate_response(
+        THERAPEUTIC_PROMPT, text[:3000]  # 500 words
+    )
+
+    # store data in vector database with RAGHandler
+    metadata = {
+        "url": url,
+        "title": title,
+        "therapeutic_area": therapeutic_area,
+        "timestamp": timestamp,
+    }
+
+    # TODO: need to initialize RAGHandler with user_id
+    RAGHandler().save_to_vector_database(text, metadata)
+    return {"text": therapeutic_area}
