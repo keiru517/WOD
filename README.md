@@ -2,28 +2,15 @@
 
 This README would normally document whatever steps are necessary to get your application up and running.
 
-### What is this repository for? ###
+### How to setup
+- Clone the repository
+- Create a virtual environment with `python -m venv venv`
+- Activate the virtual environment
+    ```
+    source venv/Scripts/activate
+    ```
+- Run `pip install -r requirements.txt`
+- Copy `.env.example` file and rename it into `.env`, Update all env variables like `OPENAI_API_KEY`
 
-* Quick summary
-* Version
-* [Learn Markdown](https://bitbucket.org/tutorials/markdowndemo)
-
-### How do I get set up? ###
-
-* Summary of set up
-* Configuration
-* Dependencies
-* Database configuration
-* How to run tests
-* Deployment instructions
-
-### Contribution guidelines ###
-
-* Writing tests
-* Code review
-* Other guidelines
-
-### Who do I talk to? ###
-
-* Repo owner or admin
-* Other community or team contact
+### How to run
+- `uvicorn main:app --reload`
