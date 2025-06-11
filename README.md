@@ -14,3 +14,4 @@ This README would normally document whatever steps are necessary to get your app
 
 ### How to run
 - `uvicorn main:app --reload`
+- `localhost:8000/docs` shows swagger documentation
