@@ -8,7 +8,7 @@ load_dotenv()
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 
-from handlers import RAGHandler, FileHandler, GPTHandler
+from handlers import ChromaRAGHandler, FileHandler, GPTHandler
 
 app = FastAPI()
 
@@ -64,5 +64,5 @@ async def upload_rag(file: UploadFile = File(...)):
     }
 
     # TODO: need to initialize RAGHandler with user_id
-    RAGHandler().save_to_vector_database(text, metadata)
+    ChromaRAGHandler().save_to_vector_database(text, metadata)
     return {"text": therapeutic_area}
