@@ -63,6 +63,8 @@ async def upload_rag(file: UploadFile = File(...)):
         "timestamp": timestamp,
     }
 
-    # TODO: need to initialize RAGHandler with user_id
-    ChromaRAGHandler().save_to_vector_database(text, metadata)
-    return {"text": therapeutic_area}
+    # TODO: need to get user_id from the request
+    user_id = "1"
+
+    status, result = ChromaRAGHandler().save_to_vector_database(text, metadata, user_id)
+    return {"status": status, "result": result}
