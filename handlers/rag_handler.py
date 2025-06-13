@@ -12,16 +12,7 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnableBranch, RunnablePassthrough
 
 from config import RAG_SYSTEM_TEMPLATE
-
-
-def error_handler(func):
-    def wrapper(*args, **kwargs):
-        try:
-            return True, func(*args, **kwargs)
-        except Exception as e:
-            return False, str(e)
-
-    return wrapper
+from utils import error_handler
 
 
 class ChromaRAGHandler:
@@ -46,6 +37,7 @@ class ChromaRAGHandler:
             embedding=self.embeddings_model,
             persist_directory="chroma_db",
         )
+        return "Successfully saved to vector database"
 
     @error_handler
     def query_vector_database(self, query: str, user_id: str) -> str:
@@ -145,3 +137,15 @@ class ChromaRAGHandler:
 
         # for chunk in stream:
         #     print(chunk)
+
+    @error_handler
+    def delete_file_from_vector_database(self, file_name: str, user_id: str) -> str:
+        collection_name = f"collection_{user_id}"
+        db = Chroma(
+            collection_name=collection_name,
+            persist_directory="chroma_db",
+            embedding_function=self.embeddings_model,
+        )
+
+        db.delete(where={"metadata": {"$eq": file_name}})
+        return "Successfully deleted from vector database"
