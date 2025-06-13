@@ -68,8 +68,7 @@ class ChromaRAGHandler:
             embedding_function=self.embeddings_model,
         )
 
-        # TODO: need to add filter to the query
-        # retriever = db.as_retriever(k=10, filter={"title": "Garrett Davis.pdf"})
+        # TODO: need to add filter to the query with metadata
         retriever = db.as_retriever(k=10)
         docs = retriever.invoke(query)
         question_answering_prompt = ChatPromptTemplate.from_messages(

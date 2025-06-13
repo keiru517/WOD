@@ -10,7 +10,17 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from handlers import ChromaRAGHandler, FileHandler, GPTHandler
 
-app = FastAPI()
+app = FastAPI(
+    title="WOD RAG API",
+    description="API for the WOD RAG",
+    version="1.0.0",
+    terms_of_service="https://www.wod.com/terms",
+    contact={
+        "name": "WOD",
+        "url": "https://www.wod.com",
+        "email": "contact@wod.com",
+    },
+)
 
 origins = [
     "http://localhost:3000",
@@ -25,14 +35,24 @@ app.add_middleware(
 )
 
 
-@app.get("/")
-async def read_root():
-    return {"message": "Hello World"}
+@app.get(
+    "/api/v1/health",
+    summary="Health Check",
+    description="Check if the API is running",
+    operation_id="health",
+)
+async def health():
+    return {"message": "API is running"}
 
 
-# need to add error handleing
-@app.post("/v1/rag/upload")
-async def upload_rag(file: UploadFile = File(...)):
+# TODO: need to add error handleing
+@app.post(
+    "/api/v1/rag/upload",
+    summary="Upload File",
+    description="Upload a file to the RAG (pdf, txt, docx)",
+    operation_id="upload_rag",
+)
+async def upload_rag(user_id: str, file: UploadFile = File(...)):
     url = None
     title = file.filename
     timestamp = datetime.now().strftime("%m-%Y")
@@ -63,8 +83,16 @@ async def upload_rag(file: UploadFile = File(...)):
         "timestamp": timestamp,
     }
 
-    # TODO: need to get user_id from the request
-    user_id = "1"
-
     status, result = ChromaRAGHandler().save_to_vector_database(text, metadata, user_id)
+    return {"status": status, "result": result}
+
+
+@app.post(
+    "/api/v1/rag/query",
+    summary="Query the RAG",
+    description="Query the RAG with a question",
+    operation_id="query",
+)
+async def query(user_id: str, query: str):
+    status, result = ChromaRAGHandler().query_vector_database(query, user_id)
     return {"status": status, "result": result}
