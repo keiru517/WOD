@@ -8,7 +8,15 @@ class FileHandler:
     def __init__(self):
         pass
 
-    async def process_pdf(self, file: UploadFile):
+    async def process_pdf(self, file: UploadFile) -> str:
+        """
+        Process a PDF file
+        Args:
+            file: UploadFile
+        Return:
+            content of the file
+        """
+
         content = await file.read()
         pdf_stream = io.BytesIO(content)
 
@@ -22,7 +30,15 @@ class FileHandler:
 
         return text
 
-    async def process_txt(self, file: UploadFile):
+    async def process_txt(self, file: UploadFile) -> str:
+        """
+        Process a TXT file
+        Args:
+            file: UploadFile
+        Return:
+            content of the file
+        """
+
         try:
             content = await file.read()
             text = content.decode("utf-8")
@@ -35,7 +51,15 @@ class FileHandler:
                 )
         return text
 
-    async def process_docx(self, file: UploadFile):
+    async def process_docx(self, file: UploadFile) -> str:
+        """
+        Process a DOCX file
+        Args:
+            file: UploadFile
+        Return:
+            content of the file
+        """
+
         content = await file.read()
         docx_stream = io.BytesIO(content)
 

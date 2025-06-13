@@ -25,6 +25,17 @@ class ChromaRAGHandler:
 
     @error_handler
     def save_to_vector_database(self, text: str, metadata: dict, user_id: str) -> str:
+        """
+        Save a text to the vector database
+        Args:
+            text: Text to save
+            metadata: Metadata of the text
+                    E.g. `{"url": "https://example.com", "title": "example.pdf", "therapeutic_area": "oncology", "timestamp": "06-2025"}`
+            user_id: Id of the user
+        Return:
+            True/False, message
+        """
+
         docs = self.text_splitter.create_documents([text])
         documents = []
         for doc in docs:
@@ -41,6 +52,15 @@ class ChromaRAGHandler:
 
     @error_handler
     def query_vector_database(self, query: str, user_id: str) -> str:
+        """
+        Query the vector database
+        Args:
+            query: Query to search for
+            user_id: Id of the user
+        Return:
+            True/False, message
+        """
+
         collection_name = f"collection_{user_id}"
         db = Chroma(
             collection_name=collection_name,
@@ -143,9 +163,9 @@ class ChromaRAGHandler:
         """
         Delete a collection from the vector database
         Args:
-            user_id: str
+            user_id: Id of the user
         Return:
-            A success message
+            True/False, message
         """
 
         collection_name = f"collection_{user_id}"
@@ -169,10 +189,10 @@ class ChromaRAGHandler:
         """
         Delete a file from the vector database by its name
         Args:
-            file_name: str
-            user_id: str
+            file_name: Name of the file to delete
+            user_id: Id of the user
         Return:
-            A success message
+            True/False, message
         """
 
         collection_name = f"collection_{user_id}"

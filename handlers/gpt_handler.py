@@ -6,6 +6,15 @@ class GPTHandler:
         self.client = OpenAI(api_key=api_key)
 
     def generate_response(self, prompt: str, query: str) -> str:
+        """
+        Generate a response from the GPT model
+        Args:
+            prompt: Prompt for the GPT model
+            query: Query for the GPT model
+        Return:
+            response from the GPT model
+        """
+
         response = self.client.responses.create(
             model="gpt-4.1",
             input=[
