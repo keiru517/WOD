@@ -139,7 +139,15 @@ class ChromaRAGHandler:
         #     print(chunk)
 
     @error_handler
-    def delete_file_from_vector_database(self, file_name: str, user_id: str) -> str:
+    def delete_collection_from_vector_database(self, user_id: str) -> str:
+        """
+        Delete a collection from the vector database
+        Args:
+            user_id: str
+        Return:
+            A success message
+        """
+
         collection_name = f"collection_{user_id}"
         db = Chroma(
             collection_name=collection_name,
@@ -147,5 +155,33 @@ class ChromaRAGHandler:
             embedding_function=self.embeddings_model,
         )
 
-        db.delete(where={"metadata": {"$eq": file_name}})
+        # FIXEME: if Chroma removes embeddings while removing collection
+        # delete all embeddings first, then remove the collection
+        collection = db.get()
+        db.delete(ids=collection["ids"])
+        db.delete_collection()
+        return "Successfully deleted collection from vector database"
+
+    @error_handler
+    def delete_file_by_name_from_vector_database(
+        self, file_name: str, user_id: str
+    ) -> str:
+        """
+        Delete a file from the vector database by its name
+        Args:
+            file_name: str
+            user_id: str
+        Return:
+            A success message
+        """
+
+        collection_name = f"collection_{user_id}"
+        db = Chroma(
+            collection_name=collection_name,
+            persist_directory="chroma_db",
+            embedding_function=self.embeddings_model,
+        )
+        collection = db.get(where={"title": {"$eq": file_name}})
+        db.delete(ids=collection["ids"])
+
         return "Successfully deleted from vector database"
