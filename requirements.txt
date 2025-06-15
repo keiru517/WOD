@@ -9,3 +9,4 @@ openai==1.86.0
 langchain-core==0.3.65
 langchain-text-splitters==0.3.8
 langchain-openai==0.3.22
+chromadb==1.0.12
