@@ -45,7 +45,6 @@ async def health():
     return {"message": "API is running"}
 
 
-# TODO: need to add error handleing
 @app.post(
     "/api/v1/rag/upload",
     summary="Upload File",
@@ -88,11 +87,35 @@ async def upload_rag(user_id: str, file: UploadFile = File(...)):
 
 
 @app.post(
+    "/api/v1/rag/delete/file",
+    summary="Delete File",
+    description="Delete a file from the RAG",
+    operation_id="delete_file",
+)
+async def delete_file(user_id: str, file_name: str):
+    status, result = ChromaRAGHandler().delete_file_by_name_from_vector_database(
+        file_name, user_id
+    )
+    return {"status": status, "result": result}
+
+
+@app.post(
+    "/api/v1/rag/delete/collection",
+    summary="Delete Collection",
+    description="Delete a collection from the RAG",
+    operation_id="delete_collection",
+)
+async def delete_collection(user_id: str):
+    status, result = ChromaRAGHandler().delete_collection_from_vector_database(user_id)
+    return {"status": status, "result": result}
+
+
+@app.post(
     "/api/v1/rag/query",
     summary="Query the RAG",
     description="Query the RAG with a question",
     operation_id="query",
 )
-async def query(user_id: str, query: str):
+async def query_rag(user_id: str, query: str):
     status, result = ChromaRAGHandler().query_vector_database(query, user_id)
     return {"status": status, "result": result}
