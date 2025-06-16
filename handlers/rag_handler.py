@@ -24,7 +24,7 @@ class ChromaRAGHandler:
         self.embeddings_model = OpenAIEmbeddings(api_key=os.getenv("OPENAI_API_KEY"))
 
     @error_handler
-    def save_to_vector_database(self, text: str, metadata: dict, user_id: str) -> str:
+    def save_to_vector_database(self, text: str, metadata: dict, user_id: str) -> tuple:
         """
         Save a text to the vector database
         Args:
@@ -50,15 +50,16 @@ class ChromaRAGHandler:
         )
         return "Successfully saved to vector database"
 
+    # TODO: need to return chunks instead of the generated messages
     @error_handler
-    def query_vector_database(self, query: str, user_id: str) -> str:
+    def query_vector_database(self, query: str, user_id: str) -> tuple:
         """
         Query the vector database
         Args:
             query: Query to search for
             user_id: Id of the user
         Return:
-            True/False, message
+            True/False, chunks
         """
 
         collection_name = f"collection_{user_id}"
@@ -67,30 +68,32 @@ class ChromaRAGHandler:
             persist_directory="chroma_db",
             embedding_function=self.embeddings_model,
         )
+        chunks = db.similarity_search(query)
+        return True, chunks
 
         # TODO: need to add filter to the query with metadata
-        retriever = db.as_retriever(k=10)
-        docs = retriever.invoke(query)
-        question_answering_prompt = ChatPromptTemplate.from_messages(
-            [
-                (
-                    "system",
-                    RAG_SYSTEM_TEMPLATE,
-                ),
-                MessagesPlaceholder(variable_name="messages"),
-            ]
-        )
+        # retriever = db.as_retriever(k=10)
+        # docs = retriever.invoke(query)
+        # question_answering_prompt = ChatPromptTemplate.from_messages(
+        #     [
+        #         (
+        #             "system",
+        #             RAG_SYSTEM_TEMPLATE,
+        #         ),
+        #         MessagesPlaceholder(variable_name="messages"),
+        #     ]
+        # )
 
-        document_chain = create_stuff_documents_chain(
-            self.llm, question_answering_prompt
-        )
-        answer = document_chain.invoke(
-            {
-                "context": docs,
-                "messages": [HumanMessage(content=query)],
-            }
-        )
-        return answer
+        # document_chain = create_stuff_documents_chain(
+        #     self.llm, question_answering_prompt
+        # )
+        # answer = document_chain.invoke(
+        #     {
+        #         "context": docs,
+        #         "messages": [HumanMessage(content=query)],
+        #     }
+        # )
+        # return answer
 
         # Streaming feature
         # query_transform_prompt = ChatPromptTemplate.from_messages(
