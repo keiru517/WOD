@@ -51,7 +51,7 @@ async def health():
     description="Upload a file to the RAG (pdf, txt, docx)",
     operation_id="upload_rag",
 )
-async def upload_rag(user_id: str, file: UploadFile = File(...)):
+async def upload_rag(user_id: str = "global", file: UploadFile = File(...)):
     url = None
     title = file.filename
     timestamp = datetime.now().strftime("%m-%Y")
@@ -92,7 +92,7 @@ async def upload_rag(user_id: str, file: UploadFile = File(...)):
     description="Delete a file from the RAG",
     operation_id="delete_file",
 )
-async def delete_file(user_id: str, file_name: str):
+async def delete_file(file_name: str, user_id: str = "global"):
     status, result = ChromaRAGHandler().delete_file_by_name_from_vector_database(
         file_name, user_id
     )
@@ -105,7 +105,7 @@ async def delete_file(user_id: str, file_name: str):
     description="Delete a collection from the RAG",
     operation_id="delete_collection",
 )
-async def delete_collection(user_id: str):
+async def delete_collection(user_id: str = "global"):
     status, result = ChromaRAGHandler().delete_collection_from_vector_database(user_id)
     return {"status": status, "result": result}
 
@@ -116,6 +116,6 @@ async def delete_collection(user_id: str):
     description="Query the RAG with a question",
     operation_id="query",
 )
-async def query_rag(user_id: str, query: str):
+async def query_rag(query: str, user_id: str = "global"):
     status, result = ChromaRAGHandler().query_vector_database(query, user_id)
     return {"status": status, "result": result}
