@@ -2,12 +2,13 @@ from handlers.rag_handler import ChromaRAGHandler
 
 rag_handler = ChromaRAGHandler()
 
-query = "Give me a summary about Garrett Davis's career"
+query = "What is the name of the main character in the story?"
 user_id = "1"
 
 
 def test_query_vector_database():
     status, answer = rag_handler.query_vector_database(
+        {"title": "Story.txt"},
         query,
         user_id,
     )
@@ -39,6 +40,6 @@ def test_delete_collection_from_vector_database():
 
 
 if __name__ == "__main__":
-    # test_query_vector_database()
+    test_query_vector_database()
     # test_delete_file_with_name_from_vector_database()
-    test_delete_collection_from_vector_database()
+    # test_delete_collection_from_vector_database()

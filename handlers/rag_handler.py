@@ -12,7 +12,7 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnableBranch, RunnablePassthrough
 
 from config import RAG_SYSTEM_TEMPLATE
-from utils import error_handler
+from utils import error_handler, parse_chroma_metadata
 
 
 class ChromaRAGHandler:
@@ -52,10 +52,12 @@ class ChromaRAGHandler:
 
     # TODO: need to return chunks instead of the generated messages
     @error_handler
-    def query_vector_database(self, query: str, user_id: str) -> tuple:
+    def query_vector_database(self, metadata: dict, query: str, user_id: str) -> tuple:
         """
         Query the vector database
         Args:
+            metadata: Metadata of the text
+                    E.g. `{"url": "https://example.com", "title": "example.pdf", "therapeutic_area": "oncology", "timestamp": "06-2025"}`
             query: Query to search for
             user_id: Id of the user
         Return:
@@ -68,7 +70,10 @@ class ChromaRAGHandler:
             persist_directory="chroma_db",
             embedding_function=self.embeddings_model,
         )
-        chunks = db.similarity_search(query)
+        print(parse_chroma_metadata(metadata))
+        chunks = db.similarity_search_with_score(
+            query, filter=parse_chroma_metadata(metadata)
+        )
         return True, chunks
 
         # TODO: need to add filter to the query with metadata

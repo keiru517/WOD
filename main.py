@@ -116,6 +116,6 @@ async def delete_collection(user_id: str = "global"):
     description="Query the RAG with a question",
     operation_id="query",
 )
-async def query_rag(query: str, user_id: str = "global"):
-    status, result = ChromaRAGHandler().query_vector_database(query, user_id)
+async def query_rag(metadata: dict, query: str, user_id: str = "global"):
+    status, result = ChromaRAGHandler().query_vector_database(metadata, query, user_id)
     return {"status": status, "result": result}
