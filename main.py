@@ -34,6 +34,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+openai_api_key = os.getenv("OPENAI_API_KEY")
+THERAPEUTIC_PROMPT = os.getenv("THERAPEUTIC_PROMPT")
+
 
 @app.get(
     "/api/v1/health",
@@ -66,7 +69,37 @@ async def save_to_user_collection(text: str, user_id: str, session_id: str):
 async def query_user_collection(user_id: str, session_id: str, query: list[str]):
     metadata = {"user_id": user_id, "session_id": session_id}
     status, result = ChromaRAGHandler().query_user_collection(metadata, query)
-    print(type(result))
+    return {"status": status, "result": result}
+
+
+@app.post(
+    "/api/v1/rag/web/save",
+    summary="Save To Web Collection",
+    description="Save a text to the web's collection",
+    operation_id="save_web_collection",
+)
+async def save_to_web_collection(text: str, url: str, title: str):
+    metadata = {
+        "url": url,
+        "title": title,
+        "therapeutic_area": GPTHandler(openai_api_key).generate_response(
+            THERAPEUTIC_PROMPT, text[:3000]  # 500 words
+        ),
+        "timestamp": datetime.now().strftime("%m-%Y"),
+    }
+    status, result = ChromaRAGHandler().save_to_web_collection(text, metadata)
+    return {"status": status, "result": result}
+
+
+@app.post(
+    "/api/v1/rag/web/query",
+    summary="Query Web Collection",
+    description="Query the web's collection",
+    operation_id="query_web_collection",
+)
+async def query_web_collection(user_id: str, session_id: str, query: list[str]):
+    metadata = {"user_id": user_id, "session_id": session_id}
+    status, result = ChromaRAGHandler().query_web_collection(metadata, query)
     return {"status": status, "result": result}
 
 
@@ -94,8 +127,6 @@ async def upload_rag(user_id: str = "global", file: UploadFile = File(...)):
     else:
         raise HTTPException(status_code=400, detail="Unsupported file type")
 
-    openai_api_key = os.getenv("OPENAI_API_KEY")
-    THERAPEUTIC_PROMPT = os.getenv("THERAPEUTIC_PROMPT")
     therapeutic_area = GPTHandler(openai_api_key).generate_response(
         THERAPEUTIC_PROMPT, text[:3000]  # 500 words
     )

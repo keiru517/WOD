@@ -76,6 +76,82 @@ class ChromaRAGHandler:
             response.append({"query": q, "chunks": chunks})
         return True, response
 
+    @error_handler
+    def delete_user_collection(self, user_id: str) -> tuple:
+        """
+        Delete the user's collection
+        Args:
+            user_id: Id of the user
+        Return:
+            True/False, message
+        """
+
+        collection_name = f"collection_user_{user_id}"
+        db = Chroma(
+            collection_name=collection_name,
+            persist_directory="chroma_db",
+            embedding_function=self.embeddings_model,
+        )
+
+        # FIXEME: if Chroma removes embeddings while removing collection
+        # delete all embeddings first, then remove the collection
+        collection = db.get()
+        db.delete(ids=collection["ids"])
+        db.delete_collection()
+        return f"Successfully deleted collection {collection_name} from vector database"
+
+    @error_handler
+    def save_to_web_collection(self, text: str, metadata: dict) -> tuple:
+        """
+        Save a text to the web's collection
+        Args:
+            text: Text to save
+            metadata: Metadata of the text
+                    E.g. `{"url": "https://example.com", "title": "example.pdf", "therapeutic_area": "oncology", "timestamp": "06-2025"}`
+        Return:
+            True/False, message
+        """
+
+        docs = self.text_splitter.create_documents([text])
+        documents = []
+        for doc in docs:
+            documents.append(Document(page_content=doc.page_content, metadata=metadata))
+
+        collection_name = f"collection_web"
+        Chroma.from_documents(
+            collection_name=collection_name,
+            documents=documents,
+            embedding=self.embeddings_model,
+            persist_directory="chroma_db",
+        )
+        return True, "Successfully saved to web collection"
+
+    @error_handler
+    def query_web_collection(self, metadata: dict, query: list[str]) -> tuple:
+        """
+        Query the web's collection
+        Args:
+            metadata: Metadata of the text
+                    E.g. `{"url": "https://example.com", "title": "example.pdf", "therapeutic_area": "oncology", "timestamp": "06-2025"}`
+            query: Query to search for
+        Return:
+            True/False, chunks
+        """
+        collection_name = f"collection_user_{metadata['user_id']}"
+        db = Chroma(
+            collection_name=collection_name,
+            persist_directory="chroma_db",
+            embedding_function=self.embeddings_model,
+        )
+
+        response = []
+        for q in query:
+            chunks = db.similarity_search_with_score(
+                q, filter=parse_chroma_metadata(metadata)
+            )
+            response.append({"query": q, "chunks": chunks})
+        return True, response
+
     # deprecated
     @error_handler
     def save_to_vector_database(self, text: str, metadata: dict, user_id: str) -> tuple:
