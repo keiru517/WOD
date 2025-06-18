@@ -46,6 +46,32 @@ async def health():
 
 
 @app.post(
+    "/api/v1/rag/user/save",
+    summary="Save To User Collection",
+    description="Save a text to the user's collection",
+    operation_id="save_user_collection",
+)
+async def save_to_user_collection(text: str, user_id: str, session_id: str):
+    metadata = {"user_id": user_id, "session_id": session_id}
+    status, result = ChromaRAGHandler().save_to_user_collection(text, metadata)
+    return {"status": status, "result": result}
+
+
+@app.post(
+    "/api/v1/rag/user/query",
+    summary="Query User Collection",
+    description="Query the user's collection",
+    operation_id="query_user_collection",
+)
+async def query_user_collection(user_id: str, session_id: str, query: list[str]):
+    metadata = {"user_id": user_id, "session_id": session_id}
+    status, result = ChromaRAGHandler().query_user_collection(metadata, query)
+    print(type(result))
+    return {"status": status, "result": result}
+
+
+# deprecated
+@app.post(
     "/api/v1/rag/upload",
     summary="Upload File",
     description="Upload a file to the RAG (pdf, txt, docx)",

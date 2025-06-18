@@ -24,6 +24,60 @@ class ChromaRAGHandler:
         self.embeddings_model = OpenAIEmbeddings(api_key=os.getenv("OPENAI_API_KEY"))
 
     @error_handler
+    def save_to_user_collection(self, text: str, metadata: dict) -> tuple:
+        """
+        Save a text to the user's collection
+        Args:
+            text: Text to save
+            metadata: Metadata of the text
+                    E.g. `{"user_id": "1", "session_id": "abcde-figh"}`
+            user_id: Id of the user
+        Return:
+            True/False, message
+        """
+
+        docs = self.text_splitter.create_documents([text])
+        documents = []
+        for doc in docs:
+            documents.append(Document(page_content=doc.page_content, metadata=metadata))
+
+        collection_name = f"collection_user_{metadata['user_id']}"
+        Chroma.from_documents(
+            collection_name=collection_name,
+            documents=documents,
+            embedding=self.embeddings_model,
+            persist_directory="chroma_db",
+        )
+        return True, "Successfully saved to user collection"
+
+    @error_handler
+    def query_user_collection(self, metadata: dict, query: list[str]) -> tuple:
+        """
+        Query the user's collection
+        Args:
+            metadata: Metadata of the text
+                    E.g. `{"user_id": "1", "session_id": "abcde-figh"}`
+            query: Query to search for
+        Return:
+            True/False, chunks
+        """
+        collection_name = f"collection_user_{metadata['user_id']}"
+        db = Chroma(
+            collection_name=collection_name,
+            persist_directory="chroma_db",
+            embedding_function=self.embeddings_model,
+        )
+
+        response = []
+        for q in query:
+            chunks = db.similarity_search_with_score(
+                q, filter=parse_chroma_metadata(metadata)
+            )
+            response.append({"query": q, "chunks": chunks})
+        return True, response
+
+    # deprecated
+    @error_handler
     def save_to_vector_database(self, text: str, metadata: dict, user_id: str) -> tuple:
         """
         Save a text to the vector database

@@ -1,4 +1,5 @@
 from handlers.rag_handler import ChromaRAGHandler
+from utils.parser import parse_chroma_metadata
 
 rag_handler = ChromaRAGHandler()
 
@@ -40,6 +41,8 @@ def test_delete_collection_from_vector_database():
 
 
 if __name__ == "__main__":
-    test_query_vector_database()
+    # test_query_vector_database()
     # test_delete_file_with_name_from_vector_database()
     # test_delete_collection_from_vector_database()
+    metadata = {"user_id": "1", "session_id": "abcde-figh"}
+    print(parse_chroma_metadata(metadata))

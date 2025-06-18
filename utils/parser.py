@@ -7,8 +7,15 @@ def parse_chroma_metadata(metadata: dict) -> dict:
     Return:
         Metadata with operator and value
                 E.g. `{"timestamp": {"$eq": "06-2025"}}`
+                E.g. `{"$and": [{"timestamp": {"$eq": "06-2025"}}, {"therapeutic_area": {"$eq": "oncology"}}]}`
     """
+    result = []
     parsed_metadata = {}
     for key, value in metadata.items():
         parsed_metadata[key] = {"$eq": value}
-    return parsed_metadata
+        result.append({key: {"$eq": value}})
+
+    if len(result) == 1:
+        return parsed_metadata
+    else:
+        return {"$and": result}
