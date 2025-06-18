@@ -48,7 +48,7 @@ class ChromaRAGHandler:
             embedding=self.embeddings_model,
             persist_directory="chroma_db",
         )
-        return True, "Successfully saved to user collection"
+        return f"Successfully saved to collection {collection_name}"
 
     @error_handler
     def query_user_collection(self, metadata: dict, query: list[str]) -> tuple:
@@ -74,7 +74,7 @@ class ChromaRAGHandler:
                 q, filter=parse_chroma_metadata(metadata)
             )
             response.append({"query": q, "chunks": chunks})
-        return True, response
+        return response
 
     @error_handler
     def delete_user_collection(self, user_id: str) -> tuple:
