@@ -1,6 +1,5 @@
 from handlers.rag_handler import ChromaRAGHandler
 from utils.parser import parse_chroma_metadata
-from web_search_result import WEB_SEARCH_RESULT
 
 rag_handler = ChromaRAGHandler()
 
@@ -59,8 +58,4 @@ if __name__ == "__main__":
     # test_query_vector_database()
     # test_delete_file_with_name_from_vector_database()
     # test_delete_collection_from_vector_database()
-    # metadata = {"user_id": "1", "session_id": "1"}
-    # print(WEB_SEARCH_RESULT)
-    from main import save_to_web_collection
-
-    save_to_web_collection(WEB_SEARCH_RESULT)
+    metadata = {"user_id": "1", "session_id": "1"}
