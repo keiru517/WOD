@@ -9,6 +9,7 @@ from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 
 from handlers import ChromaRAGHandler, FileHandler, GPTHandler
+from schemas import WebSearchQueryData
 
 app = FastAPI(
     title="WOD RAG API",
@@ -51,12 +52,12 @@ async def health():
 @app.post(
     "/api/v1/rag/user_collection/save",
     summary="Save To User Collection",
-    description="Save a text to the user's collection",
+    description="Save a content to the user's collection",
     operation_id="save_user_collection",
 )
-async def save_to_user_collection(text: str, user_id: str, session_id: str):
+async def save_to_user_collection(content: str, user_id: str, session_id: str):
     metadata = {"user_id": user_id, "session_id": session_id}
-    status, result = ChromaRAGHandler().save_to_user_collection(text, metadata)
+    status, result = ChromaRAGHandler().save_to_user_collection(content, metadata)
     return {"status": status, "result": result}
 
 
@@ -84,26 +85,36 @@ async def delete_user_collection(user_id: str):
 
 
 @app.post(
-    "/api/v1/rag/web/save",
+    "/api/v1/rag/web_collection/save",
     summary="Save To Web Collection",
     description="Save a text to the web's collection",
     operation_id="save_web_collection",
 )
-async def save_to_web_collection(text: str, url: str, title: str):
-    metadata = {
-        "url": url,
-        "title": title,
-        "therapeutic_area": GPTHandler(openai_api_key).generate_response(
-            THERAPEUTIC_PROMPT, text[:3000]  # 500 words
-        ),
-        "timestamp": datetime.now().strftime("%m-%Y"),
-    }
-    status, result = ChromaRAGHandler().save_to_web_collection(text, metadata)
+async def save_to_web_collection(web_search_response: list[WebSearchQueryData]):
+    for response in web_search_response:
+        images = ", ".join(response.images)  # convert list into string
+        results = response.results
+        for result in results:
+            url = result.url
+            title = result.title
+            content = result.content
+
+            metadata = {
+                "url": url,
+                "title": title,
+                "therapeutic_area": GPTHandler(openai_api_key).generate_response(
+                    THERAPEUTIC_PROMPT, content[:3000]  # 500 words
+                ),
+                "timestamp": datetime.now().strftime("%m-%Y"),
+            }
+            status, result = ChromaRAGHandler().save_to_web_collection(
+                content, metadata
+            )
     return {"status": status, "result": result}
 
 
 @app.post(
-    "/api/v1/rag/web/query",
+    "/api/v1/rag/web_collection/query",
     summary="Query Web Collection",
     description="Query the web's collection",
     operation_id="query_web_collection",

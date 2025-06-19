@@ -24,19 +24,19 @@ class ChromaRAGHandler:
         self.embeddings_model = OpenAIEmbeddings(api_key=os.getenv("OPENAI_API_KEY"))
 
     @error_handler
-    def save_to_user_collection(self, text: str, metadata: dict) -> tuple:
+    def save_to_user_collection(self, content: str, metadata: dict) -> tuple:
         """
-        Save a text to the user's collection
+        Save a content to the user's collection
         Args:
-            text: Text to save
-            metadata: Metadata of the text
+            content: Text to save
+            metadata: Metadata of the content
                     E.g. `{"user_id": "1", "session_id": "abcde-figh"}`
             user_id: Id of the user
         Return:
             True/False, message
         """
 
-        docs = self.text_splitter.create_documents([text])
+        docs = self.text_splitter.create_documents([content])
         documents = []
         for doc in docs:
             documents.append(Document(page_content=doc.page_content, metadata=metadata))
@@ -61,6 +61,7 @@ class ChromaRAGHandler:
         Return:
             True/False, chunks
         """
+
         collection_name = f"collection_user_{metadata['user_id']}"
         db = Chroma(
             collection_name=collection_name,
@@ -101,29 +102,34 @@ class ChromaRAGHandler:
         return f"Successfully deleted collection {collection_name} from vector database"
 
     @error_handler
-    def save_to_web_collection(self, text: str, metadata: dict) -> tuple:
+    def save_to_web_collection(self, content: str, metadata: dict) -> tuple:
         """
-        Save a text to the web's collection
+        Save a content to the web's collection
         Args:
-            text: Text to save
-            metadata: Metadata of the text
+            content: Content to save
+            metadata: Metadata of the content
                     E.g. `{"url": "https://example.com", "title": "example.pdf", "therapeutic_area": "oncology", "timestamp": "06-2025"}`
         Return:
             True/False, message
         """
 
-        docs = self.text_splitter.create_documents([text])
+        docs = self.text_splitter.create_documents([content])
         documents = []
         for doc in docs:
             documents.append(Document(page_content=doc.page_content, metadata=metadata))
 
         collection_name = f"collection_web"
-        Chroma.from_documents(
+        db = Chroma(
             collection_name=collection_name,
-            documents=documents,
-            embedding=self.embeddings_model,
             persist_directory="chroma_db",
+            embedding_function=self.embeddings_model,
         )
+
+        items = db.get(where={"url": {"$eq": metadata.get("url")}})
+        if items.get("ids"):  # If any matching documents exist, remove them
+            db.delete(ids=items.get("ids"))
+        db.add_documents(documents)
+
         return True, "Successfully saved to web collection"
 
     @error_handler
