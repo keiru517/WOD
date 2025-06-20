@@ -2,7 +2,19 @@ from typing import List, Optional
 from pydantic import BaseModel, Field
 
 
-class WebSearchResult(BaseModel):
+class SaveUserCollectionRequest(BaseModel):
+    user_id: str
+    session_id: str
+    content: str
+
+
+class QueryUserCollectionRequest(BaseModel):
+    user_id: str
+    session_id: str
+    query: List[str]
+
+
+class WebSearchQueryData(BaseModel):
     title: str
     url: str
     content: str
@@ -10,12 +22,12 @@ class WebSearchResult(BaseModel):
     raw_content: Optional[str] = Field(default=None, example=None)
 
 
-class WebSearchQueryData(BaseModel):
+class SaveWebCollectionRequest(BaseModel):
     query: str
     follow_up_questions: Optional[str] = None
     answer: Optional[str] = None
     images: List[str]
-    results: List[WebSearchResult]
+    results: List[WebSearchQueryData]
     response_time: float
 
     class Config:
@@ -39,3 +51,9 @@ class WebSearchQueryData(BaseModel):
                 "response_time": 5.53,
             }
         }
+
+
+class QueryWebCollectionRequest(BaseModel):
+    user_id: str
+    session_id: str
+    query: List[str]

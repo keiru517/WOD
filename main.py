@@ -9,7 +9,12 @@ from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 
 from handlers import ChromaRAGHandler, FileHandler, GPTHandler
-from schemas import WebSearchQueryData
+from schemas import (
+    SaveUserCollectionRequest,
+    QueryUserCollectionRequest,
+    SaveWebCollectionRequest,
+    QueryWebCollectionRequest,
+)
 
 app = FastAPI(
     title="WOD RAG API",
@@ -55,9 +60,11 @@ async def health():
     description="Save a content to the user's collection",
     operation_id="save_user_collection",
 )
-async def save_to_user_collection(content: str, user_id: str, session_id: str):
-    metadata = {"user_id": user_id, "session_id": session_id}
-    status, result = ChromaRAGHandler().save_to_user_collection(content, metadata)
+async def save_to_user_collection(request: SaveUserCollectionRequest):
+    metadata = {"user_id": request.user_id, "session_id": request.session_id}
+    status, result = ChromaRAGHandler().save_to_user_collection(
+        request.content, metadata
+    )
     return {"status": status, "result": result}
 
 
@@ -67,9 +74,9 @@ async def save_to_user_collection(content: str, user_id: str, session_id: str):
     description="Query the user's collection",
     operation_id="query_user_collection",
 )
-async def query_user_collection(user_id: str, session_id: str, query: list[str]):
-    metadata = {"user_id": user_id, "session_id": session_id}
-    status, result = ChromaRAGHandler().query_user_collection(metadata, query)
+async def query_user_collection(request: QueryUserCollectionRequest):
+    metadata = {"user_id": request.user_id, "session_id": request.session_id}
+    status, result = ChromaRAGHandler().query_user_collection(metadata, request.query)
     return {"status": status, "result": result}
 
 
@@ -90,7 +97,7 @@ async def delete_user_collection(user_id: str):
     description="Save a text to the web's collection",
     operation_id="save_web_collection",
 )
-async def save_to_web_collection(web_search_response: list[WebSearchQueryData]):
+async def save_to_web_collection(web_search_response: list[SaveWebCollectionRequest]):
     for response in web_search_response:
         images = ", ".join(response.images)  # convert list into string
         results = response.results
@@ -119,9 +126,9 @@ async def save_to_web_collection(web_search_response: list[WebSearchQueryData]):
     description="Query the web's collection",
     operation_id="query_web_collection",
 )
-async def query_web_collection(user_id: str, session_id: str, query: list[str]):
-    metadata = {"user_id": user_id, "session_id": session_id}
-    status, result = ChromaRAGHandler().query_web_collection(metadata, query)
+async def query_web_collection(request: QueryWebCollectionRequest):
+    metadata = {"user_id": request.user_id, "session_id": request.session_id}
+    status, result = ChromaRAGHandler().query_web_collection(metadata, request.query)
     return {"status": status, "result": result}
 
 

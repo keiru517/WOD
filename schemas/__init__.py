@@ -1,3 +1,13 @@
-from .rag import WebSearchQueryData
+from .rag import (
+    SaveUserCollectionRequest,
+    QueryUserCollectionRequest,
+    SaveWebCollectionRequest,
+    QueryWebCollectionRequest,
+)
 
-__all__ = ["WebSearchQueryData"]
+__all__ = [
+    "SaveUserCollectionRequest",
+    "QueryUserCollectionRequest",
+    "SaveWebCollectionRequest",
+    "QueryWebCollectionRequest",
+]
