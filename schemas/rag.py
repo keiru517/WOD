@@ -9,9 +9,9 @@ class SaveUserCollectionRequest(BaseModel):
 
 
 class QueryUserCollectionRequest(BaseModel):
+    queries: List[str]
     user_id: str
     session_id: str
-    query: List[str]
 
 
 class WebSearchQueryData(BaseModel):
@@ -54,6 +54,7 @@ class SaveWebCollectionRequest(BaseModel):
 
 
 class QueryWebCollectionRequest(BaseModel):
-    user_id: str
-    session_id: str
-    query: List[str]
+    queries: List[str]
+    therapeutic_area: str
+    domains: List[str]
+    include_images: bool

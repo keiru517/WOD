@@ -75,8 +75,7 @@ async def save_to_user_collection(request: SaveUserCollectionRequest):
     operation_id="query_user_collection",
 )
 async def query_user_collection(request: QueryUserCollectionRequest):
-    metadata = {"user_id": request.user_id, "session_id": request.session_id}
-    status, result = ChromaRAGHandler().query_user_collection(metadata, request.query)
+    status, result = ChromaRAGHandler().query_user_collection(request)
     return {"status": status, "result": result}
 
 
@@ -127,81 +126,81 @@ async def save_to_web_collection(web_search_response: list[SaveWebCollectionRequ
     operation_id="query_web_collection",
 )
 async def query_web_collection(request: QueryWebCollectionRequest):
-    metadata = {"user_id": request.user_id, "session_id": request.session_id}
-    status, result = ChromaRAGHandler().query_web_collection(metadata, request.query)
+    status, result = ChromaRAGHandler().query_web_collection(request)
     return {"status": status, "result": result}
 
 
 # deprecated
-@app.post(
-    "/api/v1/rag/upload",
-    summary="Upload File",
-    description="Upload a file to the RAG (pdf, txt, docx)",
-    operation_id="upload_rag",
-)
-async def upload_rag(user_id: str = "global", file: UploadFile = File(...)):
-    url = None
-    title = file.filename
-    timestamp = datetime.now().strftime("%m-%Y")
+# @app.post(
+#     "/api/v1/rag/upload",
+#     summary="Upload File",
+#     description="Upload a file to the RAG (pdf, txt, docx)",
+#     operation_id="upload_rag",
+# )
+# async def upload_rag(user_id: str = "global", file: UploadFile = File(...)):
+#     url = None
+#     title = file.filename
+#     timestamp = datetime.now().strftime("%m-%Y")
 
-    if file.content_type == "application/pdf":
-        text = await FileHandler().process_pdf(file)
-    elif file.content_type == "text/plain":
-        text = await FileHandler().process_txt(file)
-    elif (
-        file.content_type
-        == "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-    ):
-        text = await FileHandler().process_docx(file)
-    else:
-        raise HTTPException(status_code=400, detail="Unsupported file type")
+#     if file.content_type == "application/pdf":
+#         text = await FileHandler().process_pdf(file)
+#     elif file.content_type == "text/plain":
+#         text = await FileHandler().process_txt(file)
+#     elif (
+#         file.content_type
+#         == "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+#     ):
+#         text = await FileHandler().process_docx(file)
+#     else:
+#         raise HTTPException(status_code=400, detail="Unsupported file type")
 
-    therapeutic_area = GPTHandler(openai_api_key).generate_response(
-        THERAPEUTIC_PROMPT, text[:3000]  # 500 words
-    )
+#     therapeutic_area = GPTHandler(openai_api_key).generate_response(
+#         THERAPEUTIC_PROMPT, text[:3000]  # 500 words
+#     )
 
-    # store data in vector database with RAGHandler
-    metadata = {
-        "url": url,
-        "title": title,
-        "therapeutic_area": therapeutic_area,
-        "timestamp": timestamp,
-    }
+#     # store data in vector database with RAGHandler
+#     metadata = {
+#         "url": url,
+#         "title": title,
+#         "therapeutic_area": therapeutic_area,
+#         "timestamp": timestamp,
+#     }
 
-    status, result = ChromaRAGHandler().save_to_vector_database(text, metadata, user_id)
-    return {"status": status, "result": result}
-
-
-@app.post(
-    "/api/v1/rag/delete/file",
-    summary="Delete File",
-    description="Delete a file from the RAG",
-    operation_id="delete_file",
-)
-async def delete_file(file_name: str, user_id: str = "global"):
-    status, result = ChromaRAGHandler().delete_file_by_name_from_vector_database(
-        file_name, user_id
-    )
-    return {"status": status, "result": result}
+#     status, result = ChromaRAGHandler().save_to_vector_database(text, metadata, user_id)
+#     return {"status": status, "result": result}
 
 
-@app.post(
-    "/api/v1/rag/delete/collection",
-    summary="Delete Collection",
-    description="Delete a collection from the RAG",
-    operation_id="delete_collection",
-)
-async def delete_collection(user_id: str = "global"):
-    status, result = ChromaRAGHandler().delete_collection_from_vector_database(user_id)
-    return {"status": status, "result": result}
+# deprecated
+# @app.post(
+#     "/api/v1/rag/delete/file",
+#     summary="Delete File",
+#     description="Delete a file from the RAG",
+#     operation_id="delete_file",
+# )
+# async def delete_file(file_name: str, user_id: str = "global"):
+#     status, result = ChromaRAGHandler().delete_file_by_name_from_vector_database(
+#         file_name, user_id
+#     )
+#     return {"status": status, "result": result}
 
+# deprecated
+# @app.post(
+#     "/api/v1/rag/delete/collection",
+#     summary="Delete Collection",
+#     description="Delete a collection from the RAG",
+#     operation_id="delete_collection",
+# )
+# async def delete_collection(user_id: str = "global"):
+#     status, result = ChromaRAGHandler().delete_collection_from_vector_database(user_id)
+# return {"status": status, "result": result}
 
-@app.post(
-    "/api/v1/rag/query",
-    summary="Query the RAG",
-    description="Query the RAG with a question",
-    operation_id="query",
-)
-async def query_rag(metadata: dict, query: str, user_id: str = "global"):
-    status, result = ChromaRAGHandler().query_vector_database(metadata, query, user_id)
-    return {"status": status, "result": result}
+# deprecated
+# @app.post(
+#     "/api/v1/rag/query",
+#     summary="Query the RAG",
+#     description="Query the RAG with a question",
+#     operation_id="query",
+# )
+# async def query_rag(metadata: dict, query: str, user_id: str = "global"):
+#     status, result = ChromaRAGHandler().query_vector_database(metadata, query, user_id)
+#     return {"status": status, "result": result}

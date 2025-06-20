@@ -48,21 +48,22 @@ class ChromaRAGHandler:
             embedding=self.embeddings_model,
             persist_directory="chroma_db",
         )
-        return f"Successfully saved to collection {collection_name}"
+        return True, f"Successfully saved to collection {collection_name}"
 
     @error_handler
-    def query_user_collection(self, metadata: dict, query: list[str]) -> tuple:
+    def query_user_collection(self, request) -> tuple:
         """
         Query the user's collection
         Args:
             metadata: Metadata of the text
                     E.g. `{"user_id": "1", "session_id": "abcde-figh"}`
-            query: Query to search for
+            queries: Queries to search for
         Return:
             True/False, chunks
         """
 
-        collection_name = f"collection_user_{metadata['user_id']}"
+        metadata = {"user_id": request.user_id, "session_id": request.session_id}
+        collection_name = f"collection_user_{request.user_id}"
         db = Chroma(
             collection_name=collection_name,
             persist_directory="chroma_db",
@@ -70,12 +71,12 @@ class ChromaRAGHandler:
         )
 
         response = []
-        for q in query:
+        for query in request.queries:
             chunks = db.similarity_search_with_score(
-                q, filter=parse_chroma_metadata(metadata)
+                query, filter=parse_chroma_metadata(metadata)
             )
-            response.append({"query": q, "chunks": chunks})
-        return response
+            response.append({"query": query, "chunks": chunks})
+        return True, response
 
     @error_handler
     def delete_user_collection(self, user_id: str) -> tuple:
@@ -99,7 +100,10 @@ class ChromaRAGHandler:
         collection = db.get()
         db.delete(ids=collection["ids"])
         db.delete_collection()
-        return f"Successfully deleted collection {collection_name} from vector database"
+        return (
+            True,
+            f"Successfully deleted collection {collection_name} from vector database",
+        )
 
     @error_handler
     def save_to_web_collection(self, content: str, metadata: dict) -> tuple:
@@ -133,17 +137,18 @@ class ChromaRAGHandler:
         return True, "Successfully saved to web collection"
 
     @error_handler
-    def query_web_collection(self, metadata: dict, query: list[str]) -> tuple:
+    def query_web_collection(self, request) -> tuple:
         """
         Query the web's collection
         Args:
             metadata: Metadata of the text
                     E.g. `{"url": "https://example.com", "title": "example.pdf", "therapeutic_area": "oncology", "timestamp": "06-2025"}`
-            query: Query to search for
+            queries: Queries to search for
         Return:
             True/False, chunks
         """
-        collection_name = f"collection_user_{metadata['user_id']}"
+
+        collection_name = f"collection_web"
         db = Chroma(
             collection_name=collection_name,
             persist_directory="chroma_db",
@@ -151,11 +156,16 @@ class ChromaRAGHandler:
         )
 
         response = []
-        for q in query:
+        for index, query in enumerate(request.queries):
+            metadata = {
+                "therapeutic_area": request.therapeutic_area,
+                "url": request.domains[index],
+                # "include_images": request.include_images,
+            }
             chunks = db.similarity_search_with_score(
-                q, filter=parse_chroma_metadata(metadata)
+                query, filter=parse_chroma_metadata(metadata)
             )
-            response.append({"query": q, "chunks": chunks})
+            response.append({"query": query, "chunks": chunks})
         return True, response
 
     # deprecated
@@ -186,7 +196,7 @@ class ChromaRAGHandler:
         )
         return "Successfully saved to vector database"
 
-    # TODO: need to return chunks instead of the generated messages
+    # deprecated
     @error_handler
     def query_vector_database(self, metadata: dict, query: str, user_id: str) -> tuple:
         """
@@ -301,6 +311,7 @@ class ChromaRAGHandler:
         # for chunk in stream:
         #     print(chunk)
 
+    # deprecated
     @error_handler
     def delete_collection_from_vector_database(self, user_id: str) -> str:
         """
@@ -325,6 +336,7 @@ class ChromaRAGHandler:
         db.delete_collection()
         return "Successfully deleted collection from vector database"
 
+    # deprecated
     @error_handler
     def delete_file_by_name_from_vector_database(
         self, file_name: str, user_id: str
